@@ -602,6 +602,30 @@ async function processReadingLocally(payload) {
   }
 }
 
+async function processReadingLocally(payload) {
+  const converted = clientConvertArduinoData(payload);
+  const analysis = clientCalculateHydrationLevel(
+    converted.color,
+    converted.frequency,
+    converted.volume
+  );
+
+  await displayResults({
+    id: 'local_' + Date.now(),
+    hydrationLevel: analysis.level,
+    percentage: analysis.percentage,
+    timestamp: new Date().toISOString(),
+    metrics: analysis.metrics
+  });
+  showRatingSystem(analysis.level);
+
+  if (testStartTime) {
+    testDuration = ((performance.now() - testStartTime) / 1000).toFixed(2);
+    showMessage(`⏱ Test completed in ${testDuration} seconds`, 'success');
+    testStartTime = null;
+  }
+}
+
 async function sendDataToBackend(arduinoData) {
   if (!currentSessionId) {
     console.error('❌ No active session - cannot send data');
